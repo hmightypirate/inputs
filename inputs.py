@@ -51,13 +51,14 @@ import platform
 import math
 import time
 import codecs
+import fcntl
 from warnings import warn
 from itertools import count
 from operator import itemgetter
 from multiprocessing import Process, Pipe
 import ctypes
 
-__version__ = "0.5"
+__version__ = "0.5.1"
 
 WIN = True if platform.system() == 'Windows' else False
 MAC = True if platform.system() == 'Darwin' else False
@@ -2454,6 +2455,13 @@ class InputDevice(object):  # pylint: disable=useless-object-inheritance
             try:
                 self._character_file = io.open(
                     self._character_device_path, 'rb')
+                fd = self._character_file.fileno()
+                flag = fcntl.fcntl(fd, fcntl.F_GETFL)
+                fcntl.fcntl(fd, fcntl.F_SETFL, flag | os.O_NONBLOCK)
+
+                
+                #self._character_file = io.open(
+                #    self._character_device_path, 'rb')
             except PermissionError:
                 # Python 3
                 raise PermissionError(PERMISSIONS_ERROR_TEXT)
